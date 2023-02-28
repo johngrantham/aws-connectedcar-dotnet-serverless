@@ -1,0 +1,391 @@
+openapi: "3.0.1"
+info:
+  title: "ConnectedCar_Admin_API"
+  version: "1.0"
+x-amazon-apigateway-request-validators:
+  all:
+    validateRequestBody: true
+    validateRequestParameters: true 
+x-amazon-apigateway-request-validator: all
+paths:
+  /admin/dealers:
+    post: # create dealer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Dealer' 
+      security:
+      - api_key: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: 
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateDealer.Arn}:${StageName}/invocations
+        credentials: 
+          Fn::Sub: ${LambdaInvocationRoleArn}
+    get: # get dealers
+      parameters:
+      - name: "stateCode"
+        in: "query"
+        required: true
+        schema:
+          $ref: '#/components/schemas/StateCode' 
+      responses:
+        '200':
+          description: A list of dealers by stateCode
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dealers'
+      security:
+      - api_key: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: 
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetDealers.Arn}:${StageName}/invocations
+        credentials: 
+          Fn::Sub: ${LambdaInvocationRoleArn}
+  /admin/dealers/{dealerId}:
+    get: # get dealer
+      parameters:
+      - name: "dealerId"
+        in: "path"
+        required: true
+        schema:
+          $ref: '#/components/schemas/Guid' 
+      responses:
+        '200':
+          description: An individual dealer by dealerId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dealer'
+      security:
+      - api_key: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: 
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetDealer.Arn}:${StageName}/invocations
+        credentials: 
+          Fn::Sub: ${LambdaInvocationRoleArn}
+  /admin/dealers/{dealerId}/timeslots:
+    post: # create timeslot
+      parameters:
+      - name: "dealerId"
+        in: "path"
+        required: true
+        schema:
+          $ref: '#/components/schemas/Guid' 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Timeslot' 
+      security:
+      - api_key: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: 
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateTimeslot.Arn}:${StageName}/invocations
+        credentials: 
+          Fn::Sub: ${LambdaInvocationRoleArn}
+    get: # get timeslots
+      parameters:
+      - name: "dealerId"
+        in: "path"
+        required: true
+        schema:
+          $ref: '#/components/schemas/Guid' 
+      - name: "startDate"
+        in: "query"
+        required: true
+        schema:
+          $ref: '#/components/schemas/Date' 
+      - name: "endDate"
+        in: "query"
+        required: true
+        schema:
+          $ref: '#/components/schemas/Date' 
+      responses:
+        '200':
+          description: A list of timeslots for a dealer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Timeslots'
+      security:
+      - api_key: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: 
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetTimeslots.Arn}:${StageName}/invocations
+        credentials: 
+          Fn::Sub: ${LambdaInvocationRoleArn}
+  /admin/dealers/{dealerId}/timeslots/{serviceDateHour}:
+    get: # get timeslot
+      parameters:
+      - name: "dealerId"
+        in: "path"
+        required: true
+        schema:
+          $ref: '#/components/schemas/Guid' 
+      - name: "serviceDateHour"
+        in: "path"
+        required: true
+        schema:
+          $ref: '#/components/schemas/ServiceDateHour' 
+      responses:
+        '200':
+          description: An individual timeslot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Timeslot'
+      security:
+      - api_key: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: 
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetTimeslot.Arn}:${StageName}/invocations
+        credentials: 
+          Fn::Sub: ${LambdaInvocationRoleArn}
+  /admin/customers:
+    post: # create customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerProvision' 
+      security:
+      - api_key: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: 
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateCustomer.Arn}:${StageName}/invocations
+        credentials: 
+          Fn::Sub: ${LambdaInvocationRoleArn}
+    get: # get customers
+      parameters:
+      - name: "lastname"
+        in: "query"
+        required: true
+        schema:
+          $ref: '#/components/schemas/Text' 
+      responses:
+        '200':
+          description: A list of customers by lastname
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customers'
+      security:
+      - api_key: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: 
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetCustomers.Arn}:${StageName}/invocations
+        credentials: 
+          Fn::Sub: ${LambdaInvocationRoleArn}
+  /admin/customers/{username}:
+    get: # get customer
+      parameters:
+      - name: "username"
+        in: "path"
+        required: true
+        schema:
+          $ref: '#/components/schemas/AlphaNumeric' 
+      responses:
+        '200':
+          description: An individual customer by username
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+      security:
+      - api_key: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: 
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetCustomer.Arn}:${StageName}/invocations
+        credentials: 
+          Fn::Sub: ${LambdaInvocationRoleArn}
+  /admin/customers/{username}/registrations:
+    post: # create registration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Registration' 
+      parameters:
+      - name: "username"
+        in: "path"
+        required: true
+        schema:
+          $ref: '#/components/schemas/AlphaNumeric' 
+      security:
+      - api_key: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: 
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateRegistration.Arn}:${StageName}/invocations
+        credentials: 
+          Fn::Sub: ${LambdaInvocationRoleArn}
+    patch: # update registration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistrationPatch' 
+      parameters:
+      - name: "username"
+        in: "path"
+        required: true
+        schema:
+          $ref: '#/components/schemas/AlphaNumeric' 
+      security:
+      - api_key: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: 
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UpdateRegistration.Arn}:${StageName}/invocations
+        credentials: 
+          Fn::Sub: ${LambdaInvocationRoleArn}
+    get: # get customer registrations
+      parameters:
+      - name: "username"
+        in: "path"
+        required: true
+        schema:
+          $ref: '#/components/schemas/AlphaNumeric' 
+      responses:
+        '200':
+          description: A list of vehicle registrations for a customer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Registrations'
+      security:
+      - api_key: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetCustomerRegistrations.Arn}:${StageName}/invocations
+        credentials: 
+          Fn::Sub: ${LambdaInvocationRoleArn}
+  /admin/customers/{username}/registrations/{vin}:
+    get: # get registration
+      parameters:
+      - name: "username"
+        in: "path"
+        required: true
+        schema:
+          $ref: '#/components/schemas/AlphaNumeric' 
+      - name: "vin"
+        in: "path"
+        required: true
+        schema:
+          $ref: '#/components/schemas/AlphaNumeric' 
+      responses:
+        '200':
+          description: An individual registration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Registration'
+      security:
+      - api_key: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetRegistration.Arn}:${StageName}/invocations
+        credentials: 
+          Fn::Sub: ${LambdaInvocationRoleArn}
+  /admin/vehicles:
+    post: # create vehicle
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Vehicle' 
+      security:
+      - api_key: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: 
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateVehicle.Arn}:${StageName}/invocations
+        credentials: 
+          Fn::Sub: ${LambdaInvocationRoleArn}
+  /admin/vehicles/{vin}:
+    get: # get vehicle
+      parameters:
+      - name: "vin"
+        in: "path"
+        required: true
+        schema:
+          $ref: '#/components/schemas/AlphaNumeric' 
+      responses:
+        '200':
+          description: An individual vehicle by vin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+      security:
+      - api_key: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: 
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetVehicle.Arn}:${StageName}/invocations
+        credentials: 
+          Fn::Sub: ${LambdaInvocationRoleArn}
+  /admin/vehicles/{vin}/registrations:
+    get: # get vehicle registrations
+      parameters:
+      - name: "vin"
+        in: "path"
+        required: true
+        schema:
+          $ref: '#/components/schemas/AlphaNumeric' 
+      responses:
+        '200':
+          description: A list of registrations for a vehicle
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Registrations'
+      security:
+      - api_key: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: 
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetVehicleRegistrations.Arn}:${StageName}/invocations
+        credentials: 
+          Fn::Sub: ${LambdaInvocationRoleArn}
+components:
+  securitySchemes:
+    api_key:
+      type: "apiKey"
+      name: "x-api-key"
+      in: "header"

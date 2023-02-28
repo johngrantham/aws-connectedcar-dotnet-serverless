@@ -1,0 +1,174 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: 'AWS::Serverless-2016-10-31'
+Description: 'CloudFormation template for the Customer API and associated Lambdas.'
+Parameters:
+  BucketName:
+    Type: String
+    Description: 'Specifies the name of the S3 bucket where code is deployed.'
+  ServiceName:
+    Type: String
+    Description: 'Specifies the name of the service e.g. ConnectedCar.'
+    Default: ConnectedCar
+  EnvironmentName:
+    Type: String
+    Default: Dev
+    AllowedValues:
+      - Dev
+      - Test
+      - Prod
+    Description: 'Specifies the name of the environment (Dev,Test,Prod).'
+  VersionNumber:
+    Type: String
+    Default: 1.0.0
+    Description: 'Specifies the version number of the deployed zip files.'
+  StageName:
+    Type: String
+    Default: api
+    Description: 'Specifies the stage name e.g. api.'
+  UserPoolArn:
+    Type: String
+    Description: 'Specifies the ARN of the cognito user pool.'
+  LambdaExecutionRoleArn:
+    Type: String
+    Description: 'Specifies the ARN of the lambda execution role.'
+  LambdaInvocationRoleArn:
+    Type: String
+    Description: 'Specifies the ARN of the lambda invocation role.'
+Globals:
+  Function:
+    Runtime: dotnet6
+    CodeUri:
+      Bucket: !Ref BucketName
+      Key: !Sub '${ServiceName}/${EnvironmentName}/Lambda-${VersionNumber}.zip'
+    Layers:
+      - !Sub 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:18'
+    MemorySize: 1024
+    Tracing: Active
+    Timeout: 30
+    Environment:
+      Variables:
+        DealerTableName: !Sub '${ServiceName}_Dealer_Table_${EnvironmentName}'
+        TimeslotTableName: !Sub '${ServiceName}_Timeslot_Table_${EnvironmentName}'
+        AppointmentTableName: !Sub '${ServiceName}_Appointment_Table_${EnvironmentName}'
+        RegistrationTableName: !Sub '${ServiceName}_Registration_Table_${EnvironmentName}'
+        CustomerTableName: !Sub '${ServiceName}_Customer_Table_${EnvironmentName}'
+        VehicleTableName: !Sub '${ServiceName}_Vehicle_Table_${EnvironmentName}'
+        EventTableName: !Sub '${ServiceName}_Event_Table_${EnvironmentName}'
+        UserPoolId: !Select 
+          - '1'
+          - !Split 
+            - /
+            - !Ref UserPoolArn
+Conditions:
+  IsDevelopment: !Equals [ !Ref EnvironmentName, Dev]
+Resources:
+  CustomerAPI:
+    Type: 'AWS::Serverless::Api'
+    Properties:
+      Name: !Sub '${ServiceName}_Customer_API_${EnvironmentName}'
+      StageName: !Ref StageName
+      EndpointConfiguration: REGIONAL
+      DefinitionBody:
+        'Fn::Transform':
+          Name: AWS::Include
+          Parameters:
+            Location: !Sub 's3://${BucketName}/${ServiceName}/${EnvironmentName}/customer.openapi.yaml'
+      MethodSettings:
+        - LoggingLevel: INFO
+          DataTraceEnabled: !If [ IsDevelopment, true, false ]
+          MetricsEnabled: true
+          HttpMethod: '*'
+          ResourcePath: '/*'
+      TracingEnabled: true
+  UpdateCustomer:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      FunctionName: !Sub '${ServiceName}_Customer_UpdateCustomer_${EnvironmentName}'
+      Handler: ConnectedCar.Lambda::ConnectedCar.Lambda.CustomerFunctions::UpdateCustomer
+      Description: Function to update a customer's profile
+      Role: !Ref LambdaExecutionRoleArn
+      AutoPublishAlias: !Ref StageName
+  GetCustomer:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      FunctionName: !Sub '${ServiceName}_Customer_GetCustomer_${EnvironmentName}'
+      Handler: ConnectedCar.Lambda::ConnectedCar.Lambda.CustomerFunctions::GetCustomer
+      Description: Function to retrieve the customer's profile
+      Role: !Ref LambdaExecutionRoleArn
+      AutoPublishAlias: !Ref StageName
+  CreateAppointment:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      FunctionName: !Sub '${ServiceName}_Customer_CreateAppointment_${EnvironmentName}'
+      Handler: ConnectedCar.Lambda::ConnectedCar.Lambda.CustomerFunctions::CreateAppointment
+      Description: Function to create a customer appointment
+      Role: !Ref LambdaExecutionRoleArn
+      AutoPublishAlias: !Ref StageName
+  GetAppointment:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      FunctionName: !Sub '${ServiceName}_Customer_GetAppointment_${EnvironmentName}'
+      Handler: ConnectedCar.Lambda::ConnectedCar.Lambda.CustomerFunctions::GetAppointment
+      Description: Function to retrieve an individual appointment
+      Role: !Ref LambdaExecutionRoleArn
+      AutoPublishAlias: !Ref StageName
+  DeleteAppointment:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      FunctionName: !Sub '${ServiceName}_Customer_DeleteAppointment_${EnvironmentName}'
+      Handler: ConnectedCar.Lambda::ConnectedCar.Lambda.CustomerFunctions::DeleteAppointment
+      Description: Function to delete a customer appointments
+      Role: !Ref LambdaExecutionRoleArn
+      AutoPublishAlias: !Ref StageName
+  GetRegistrations:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      FunctionName: !Sub '${ServiceName}_Customer_GetRegistrations_${EnvironmentName}'
+      Handler: ConnectedCar.Lambda::ConnectedCar.Lambda.CustomerFunctions::GetRegistrations
+      Description: Function to retrieve the customer's vehicle registrations
+      Role: !Ref LambdaExecutionRoleArn
+      AutoPublishAlias: !Ref StageName
+  GetAppointments:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      FunctionName: !Sub '${ServiceName}_Customer_GetAppointments_${EnvironmentName}'
+      Handler: ConnectedCar.Lambda::ConnectedCar.Lambda.CustomerFunctions::GetAppointments
+      Description: Function to retrieve the customer's appointments for a registration
+      Role: !Ref LambdaExecutionRoleArn
+      AutoPublishAlias: !Ref StageName
+  GetVehicle:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      FunctionName: !Sub '${ServiceName}_Customer_GetVehicle_${EnvironmentName}'
+      Handler: ConnectedCar.Lambda::ConnectedCar.Lambda.CustomerFunctions::GetVehicle
+      Description: Function to retrieve a customer's vehicle
+      Role: !Ref LambdaExecutionRoleArn
+      AutoPublishAlias: !Ref StageName
+  GetEvents:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      FunctionName: !Sub '${ServiceName}_Customer_GetEvents_${EnvironmentName}'
+      Handler: ConnectedCar.Lambda::ConnectedCar.Lambda.CustomerFunctions::GetEvents
+      Description: Function to retrieve the customer's vehicle events
+      Role: !Ref LambdaExecutionRoleArn
+      AutoPublishAlias: !Ref StageName
+  GetDealers:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      FunctionName: !Sub '${ServiceName}_Customer_GeDealers_${EnvironmentName}'
+      Handler: ConnectedCar.Lambda::ConnectedCar.Lambda.CustomerFunctions::GetDealers
+      Description: Function to retrieve the dealers within a state
+      Role: !Ref LambdaExecutionRoleArn
+      AutoPublishAlias: !Ref StageName
+  GetTimeslots:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      FunctionName: !Sub '${ServiceName}_Customer_GetTimeslots_${EnvironmentName}'
+      Handler: ConnectedCar.Lambda::ConnectedCar.Lambda.CustomerFunctions::GetTimeslots
+      Description: Function to retrieve timeslots for a specified dealer and service date
+      Role: !Ref LambdaExecutionRoleArn
+      AutoPublishAlias: !Ref StageName
+Outputs:
+  CustomerAPI:
+    Description: 'The Customer API ID'
+    Value: !Ref CustomerAPI

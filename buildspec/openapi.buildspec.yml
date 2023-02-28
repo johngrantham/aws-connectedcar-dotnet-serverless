@@ -1,0 +1,38 @@
+version: 0.2
+env:
+  exported-variables:
+    - VERSION_NUMBER
+phases:
+  install:
+    runtime-versions:
+      dotnet: latest
+    commands:
+      - export PATH="$PATH:/root/.dotnet/tools"
+      - dotnet tool install -g Amazon.Lambda.Tools
+  pre_build:
+    commands:
+      - VERSION_NUMBER=$(date +"%Y%m%d-%H%M%S")
+      - dotnet nuget add source --name github "https://nuget.pkg.github.com/johngrantham/index.json"
+  build:
+    commands:
+      # run the lambda component tests
+      - dotnet test src/ConnectedCar.Lambda.Test
+      # build the lambda package file
+      - dotnet lambda package --configuration release --framework net6.0 -pl src/ConnectedCar.Lambda -o target/Lambda-${VERSION_NUMBER}.zip
+  post_build:
+    commands:
+      - aws s3 rm --recursive s3://${BUCKET}/${SERVICE}/${ENVIRONMENT}
+      - aws s3 cp target/Lambda-${VERSION_NUMBER}.zip s3://${BUCKET}/${SERVICE}/${ENVIRONMENT}/Lambda-${VERSION_NUMBER}.zip
+      - cat deployment/openapi/specifications/admin.openapi.yaml deployment/openapi/specifications/schemas.openapi.yaml | aws s3 cp - s3://${BUCKET}/${SERVICE}/${ENVIRONMENT}/admin.openapi.yaml
+      - cat deployment/openapi/specifications/vehicle.openapi.yaml deployment/openapi/specifications/schemas.openapi.yaml | aws s3 cp - s3://${BUCKET}/${SERVICE}/${ENVIRONMENT}/vehicle.openapi.yaml
+      - cat deployment/openapi/specifications/customer.openapi.yaml deployment/openapi/specifications/schemas.openapi.yaml | aws s3 cp - s3://${BUCKET}/${SERVICE}/${ENVIRONMENT}/customer.openapi.yaml
+      - aws s3 cp deployment/openapi/templates/admin.yaml s3://${BUCKET}/${SERVICE}/${ENVIRONMENT}/admin.yaml
+      - aws s3 cp deployment/openapi/templates/vehicle.yaml s3://${BUCKET}/${SERVICE}/${ENVIRONMENT}/vehicle.yaml
+      - aws s3 cp deployment/openapi/templates/master.yaml s3://${BUCKET}/${SERVICE}/${ENVIRONMENT}/master.yaml
+      - aws s3 cp deployment/openapi/templates/customer.yaml s3://${BUCKET}/${SERVICE}/${ENVIRONMENT}/customer.yaml
+      - aws s3 cp deployment/openapi/templates/services.yaml s3://${BUCKET}/${SERVICE}/${ENVIRONMENT}/services.yaml
+      - aws s3 cp deployment/openapi/templates/roles.yaml s3://${BUCKET}/${SERVICE}/${ENVIRONMENT}/roles.yaml
+
+
+
+

@@ -1,0 +1,288 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: 'CloudFormation template for code repository and build pipeline.'
+Parameters:
+  BucketName:
+    Type: String
+    Description: 'Specifies the name of the S3 bucket from which code is deployed.'
+  BranchName:
+    Description: 'CodeCommit branch name'
+    Type: String
+    Default: master
+  ZipFile:
+    Description: 'Solution zip file.'
+    Type: String
+  ServiceName:
+    Type: String
+    Description: 'Specifies the name of the service e.g. ConnectedCar.'
+    Default: ConnectedCar
+  EnvironmentName:
+    Type: String
+    Default: Dev
+    AllowedValues:
+      - Dev
+      - Test
+      - Prod
+    Description: 'Specifies the name of the environment (Dev,Test,Prod).'
+  StageName:
+    Type: String
+    Default: api
+    Description: 'Specifies the stage name e.g. api.'
+  BuildFile:
+    Type: String
+    Description: 'Specifies the name of the buildspec file for the build stage.'
+  TestFile:
+    Type: String
+    Description: 'Specifies the name of the buildspec file for the test stage.'
+  DeployFile:
+    Type: String
+    Description: 'Specifies the name of the master template file for the deploy stage.'
+Resources:
+  BuildPolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      Description: Policy code build projects
+      Path: /
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'codebuild:*'
+              - 'logs:*'
+              - 's3:*'
+              - 'cloudformation:*'
+              - 'apigateway:*'
+              - 'cognito-idp:*'
+            Resource: '*'
+  BuildServiceRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codebuild.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - !Ref BuildPolicy
+      RoleName: !Sub '${ServiceName}_CodeBuild_ServiceRole_${EnvironmentName}'
+  PipelinePolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      Description: Policy code build projects
+      Path: /
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: AllowPassRole
+            Effect: Allow
+            Action:
+              - 'codecommit:*'
+              - 'codebuild:*'
+              - 'cloudformation:*'
+              - 's3:*'
+              - 'iam:PassRole'
+            Resource: '*'
+  PipelineServiceRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codepipeline.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - !Ref PipelinePolicy
+      RoleName: !Sub '${ServiceName}_CodePipeline_ServiceRole_${EnvironmentName}'
+  CloudFormationPolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      Description: Policy code build projects
+      Path: /
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: AllowPassRole
+            Effect: Allow
+            Action:
+              - 'cloudformation:*'
+              - 's3:*'
+              - 'dynamodb:*'
+              - 'cognito-idp:*'
+              - 'iam:*'
+              - 'apigateway:*'
+              - 'lambda:*'
+              - 'cloudwatch:*'
+              - 'logs:*'
+            Resource: '*'
+  CloudFormationServiceRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - cloudformation.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - !Ref CloudFormationPolicy
+      RoleName: !Sub '${ServiceName}_CloudFormation_ServiceRole_${EnvironmentName}'
+  Repository:
+    Type: AWS::CodeCommit::Repository
+    Properties: 
+      RepositoryDescription: 'Code repository for the solution'
+      RepositoryName: !Sub '${ServiceName}_Repo_${EnvironmentName}'
+      Code:
+        BranchName: !Ref BranchName
+        S3: 
+          Bucket: !Ref BucketName
+          Key: !Sub '${ServiceName}/Repo/${ZipFile}'
+  BuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub '${ServiceName}_BuildProject_${EnvironmentName}'
+      Description: 'CodeBuild build project for the solution'
+      ServiceRole: !Ref BuildServiceRole
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:6.0
+        EnvironmentVariables:
+          - Name: BUCKET
+            Type: PLAINTEXT
+            Value: !Ref BucketName
+          - Name: SERVICE
+            Type: PLAINTEXT
+            Value: !Ref ServiceName
+          - Name: ENVIRONMENT
+            Type: PLAINTEXT
+            Value: !Ref EnvironmentName
+        PrivilegedMode: true
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Ref BuildFile
+  TestProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub '${ServiceName}_TestProject_${EnvironmentName}'
+      Description: 'CodeBuild test project for the solution'
+      ServiceRole: !Ref BuildServiceRole
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:4.0
+        EnvironmentVariables:
+          - Name: BUCKET
+            Type: PLAINTEXT
+            Value: !Ref BucketName
+          - Name: SERVICE
+            Type: PLAINTEXT
+            Value: !Ref ServiceName
+          - Name: ENVIRONMENT
+            Type: PLAINTEXT
+            Value: !Ref EnvironmentName
+          - Name: STAGE
+            Type: PLAINTEXT
+            Value: !Ref StageName
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Ref TestFile
+  Pipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      Name: !Sub '${ServiceName}_Pipeline_${EnvironmentName}'
+      ArtifactStore:
+        Type: S3
+        Location: !Ref BucketName
+      RoleArn: !GetAtt 
+        - PipelineServiceRole
+        - Arn
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: SourceAction
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Version: 1
+                Provider: CodeCommit
+              OutputArtifacts:
+                - Name: SourceArtifact
+              Configuration:
+                BranchName: !Ref BranchName
+                RepositoryName: !GetAtt 
+                  - Repository
+                  - Name
+                PollForSourceChanges: false
+              RunOrder: 1
+        - Name: Build
+          Actions:
+            - Name: BuildAction
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Version: 1
+                Provider: CodeBuild
+              InputArtifacts:
+                - Name: SourceArtifact
+              OutputArtifacts:
+                - Name: BuildArtifact
+              Configuration:
+                BatchEnabled: false
+                ProjectName: !Ref BuildProject
+              RunOrder: 1  
+              Namespace: BuildVariables
+        - Name: Deploy
+          Actions:
+            - Name: DeployAction
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: 1
+                Provider: CloudFormation
+              InputArtifacts:
+                - Name: SourceArtifact
+              OutputArtifacts:
+                - Name: DeployArtifact
+              Configuration:
+                ActionMode: CREATE_UPDATE
+                Capabilities: CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND
+                ParameterOverrides: !Sub '{"BucketName": "${BucketName}","ServiceName": "${ServiceName}","EnvironmentName": "${EnvironmentName}","VersionNumber": "#{BuildVariables.VERSION_NUMBER}","StageName": "${StageName}"}'
+                RoleArn: !GetAtt 
+                  - CloudFormationServiceRole
+                  - Arn
+                StackName: !Sub '${ServiceName}${EnvironmentName}'
+                TemplatePath: !Sub 'SourceArtifact::${DeployFile}'
+              RunOrder: 1  
+              Namespace: DeployVariables
+        - Name: Test
+          Actions:
+            - Name: BuildAction
+              ActionTypeId:
+                Category: Test
+                Owner: AWS
+                Version: 1
+                Provider: CodeBuild
+              InputArtifacts:
+                - Name: SourceArtifact
+              OutputArtifacts:
+                - Name: TestArtifact
+              Configuration:
+                BatchEnabled: false
+                ProjectName: !Ref TestProject
+              RunOrder: 1  
+              Namespace: TestVariables

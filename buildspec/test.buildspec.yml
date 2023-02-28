@@ -1,0 +1,31 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      nodejs: 12
+    commands:
+      - npm install -g newman
+  pre_build:
+    commands:
+      - number=$(date +"%H%M%S")
+      - username="testuser${number}"
+      - password="#FlakTopia329"
+      - vin1="VIN${number}P${number}"
+      - vin2="VIN${number}S${number}"
+      - vehiclePin="${number}"
+      - adminApi=$(aws cloudformation describe-stacks --stack-name ${SERVICE}${ENVIRONMENT} --query "Stacks[0].Outputs[?OutputKey=='AdminAPI'].OutputValue" --output text)
+      - vehicleApi=$(aws cloudformation describe-stacks --stack-name ${SERVICE}${ENVIRONMENT} --query "Stacks[0].Outputs[?OutputKey=='VehicleAPI'].OutputValue" --output text)
+      - customerApi=$(aws cloudformation describe-stacks --stack-name ${SERVICE}${ENVIRONMENT} --query "Stacks[0].Outputs[?OutputKey=='CustomerAPI'].OutputValue" --output text)
+      - userPoolId=$(aws cloudformation describe-stacks --stack-name ${SERVICE}${ENVIRONMENT} --query "Stacks[0].Outputs[?OutputKey=='UserPoolId'].OutputValue" --output text)
+      - userClientId=$(aws cloudformation describe-stacks --stack-name ${SERVICE}${ENVIRONMENT} --query "Stacks[0].Outputs[?OutputKey=='UserClientId'].OutputValue" --output text)
+      - secret=$(aws cognito-idp describe-user-pool-client --user-pool-id ${userPoolId} --client-id ${userClientId} --query 'UserPoolClient.ClientSecret' --output text)
+      - hash=$(echo -n "${username}${userClientId}" | openssl dgst -sha256 -hmac ${secret} -binary | openssl enc -base64)
+      - apiKey=$(aws apigateway get-api-keys --query "items[?contains(stageKeys,\`${adminApi}/${STAGE}\`)==\`true\`].value" --include-values --output text)
+  build:
+    commands:
+      - newman run postman/admin.postman_collection.json --global-var "adminApi=${adminApi}" --global-var "region=${AWS_DEFAULT_REGION}" --global-var "stage=${STAGE}" --global-var "username=${username}" --global-var "vin1=${vin1}" --global-var "vin2=${vin2}" --global-var "vehiclePin=${vehiclePin}" --global-var "apiKey=${apiKey}" --global-var "pipeline=true"
+      - newman run postman/vehicle.postman_collection.json --global-var "vehicleApi=${vehicleApi}" --global-var "region=${AWS_DEFAULT_REGION}" --global-var "stage=${STAGE}" --global-var "username=${username}" --global-var "vin1=${vin1}" --global-var "vehiclePin=${vehiclePin}" --global-var "pipeline=true"
+      - sleep 10
+      - aws cognito-idp admin-set-user-password --user-pool-id ${userPoolId} --username ${username} --password ${password} --permanent
+      - token=$(aws cognito-idp admin-initiate-auth --user-pool-id ${userPoolId} --client-id ${userClientId} --auth-flow ADMIN_USER_PASSWORD_AUTH --auth-parameters USERNAME=${username},PASSWORD=${password},SECRET_HASH=${hash} --query 'AuthenticationResult.AccessToken' --output text)
+      - newman run postman/customer.postman_collection.json --global-var "customerApi=${customerApi}" --global-var "region=${AWS_DEFAULT_REGION}" --global-var "stage=${STAGE}" --global-var "username=${username}" --global-var "vin1=${vin1}" --global-var "token=${token}" --global-var "pipeline=true"
