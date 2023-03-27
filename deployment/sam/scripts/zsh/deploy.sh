@@ -68,9 +68,7 @@ aws cloudformation update-stack \
     --template-body file://${workspacePath}/deployment/sam/templates/master.yaml \
     --parameters ParameterKey=BucketName,ParameterValue=${bucket} \
                  ParameterKey=ServiceName,ParameterValue=${service} \
-                 ParameterKey=ServiceNameLower,ParameterValue=${serviceLower} \
                  ParameterKey=EnvironmentName,ParameterValue=${environment} \
-                 ParameterKey=EnvironmentNameLower,ParameterValue=${environmentLower} \
                  ParameterKey=VersionNumber,ParameterValue=${version} \
                  ParameterKey=StageName,ParameterValue=${stage} \
                  ParameterKey=UserPoolDomainName,ParameterValue=${domain} \
