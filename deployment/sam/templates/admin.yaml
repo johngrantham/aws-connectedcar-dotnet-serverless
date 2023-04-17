@@ -88,8 +88,6 @@ Resources:
             Method: POST
             RestApiId: !Ref AdminAPI
       AutoPublishAlias: !Ref StageName
-      ProvisionedConcurrencyConfig:
-        ProvisionedConcurrentExecutions: 1
   GetDealers:
     Type: 'AWS::Serverless::Function'
     Properties:
