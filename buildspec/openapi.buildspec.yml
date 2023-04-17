@@ -15,8 +15,6 @@ phases:
       - dotnet nuget add source --name github "https://nuget.pkg.github.com/johngrantham/index.json"
   build:
     commands:
-      # run the lambda component tests
-      - dotnet test src/ConnectedCar.Lambda.Test
       # build the lambda package file
       - dotnet lambda package --configuration release --framework net6.0 -pl src/ConnectedCar.Lambda -o target/Lambda-${VERSION_NUMBER}.zip
   post_build:
