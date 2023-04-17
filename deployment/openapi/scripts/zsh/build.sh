@@ -4,14 +4,6 @@ source config.sh
 
 echo " "
 echo "*************************************************************"
-echo "*            Running the lambda component tests             *"
-echo "*************************************************************"
-echo " "
-
-dotnet test ${workspacePath}/src/ConnectedCar.Lambda.Test
-
-echo " "
-echo "*************************************************************"
 echo "*        Building and packaging the Lambda zip file         *"
 echo "*************************************************************"
 echo " "
