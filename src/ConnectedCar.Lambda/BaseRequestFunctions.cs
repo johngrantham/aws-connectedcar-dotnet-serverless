@@ -94,7 +94,7 @@ namespace ConnectedCar.Lambda
 
         protected string GetHeaderValue(APIGatewayProxyRequest req, string headerName)
         {
-            if (!req.Headers.ContainsKey(headerName))
+            if (req.Headers == null || !req.Headers.ContainsKey(headerName))
                 throw new InvalidOperationException("Missing header value: " + headerName);
 
             return req.Headers[headerName];
@@ -102,7 +102,7 @@ namespace ConnectedCar.Lambda
 
         protected string GetQueryParameter(APIGatewayProxyRequest req, string parameterName)
         {
-            if (!req.QueryStringParameters.ContainsKey(parameterName))
+            if (req.QueryStringParameters == null || !req.QueryStringParameters.ContainsKey(parameterName))
                 throw new InvalidOperationException("Query parameter missing: " + parameterName);
 
             return req.QueryStringParameters[parameterName];
@@ -110,7 +110,7 @@ namespace ConnectedCar.Lambda
 
         protected string GetPathParameter(APIGatewayProxyRequest req, string parameterName)
         {
-            if (!req.PathParameters.ContainsKey(parameterName))
+            if (req.PathParameters == null || !req.PathParameters.ContainsKey(parameterName))
                 throw new InvalidOperationException("Path parameter missing: " + parameterName);
 
             return req.PathParameters[parameterName];
@@ -130,14 +130,17 @@ namespace ConnectedCar.Lambda
         {
             StateCodeEnum stateCode = StateCodeEnum.Unknown;
 
-            if (req.QueryStringParameters.ContainsKey(QueryStateCode))
+            if (req.QueryStringParameters == null || !req.QueryStringParameters.ContainsKey(QueryStateCode))
+                throw new InvalidOperationException("Query parameter missing: " + QueryStateCode);
+
+            try
             {
-                try
-                {
-                    string code = req.QueryStringParameters[QueryStateCode];
-                    stateCode = (StateCodeEnum)Enum.Parse(typeof(StateCodeEnum), code);
-                }
-                catch (Exception) { }
+                string code = req.QueryStringParameters[QueryStateCode];
+                stateCode = (StateCodeEnum)Enum.Parse(typeof(StateCodeEnum), code);
+            }
+            catch (Exception) 
+            {
+                throw new InvalidOperationException("Query parameter value invalid: " + QueryStateCode);
             }
 
             return stateCode;
