@@ -9,8 +9,8 @@ elif [ "$1" != "sam" ] && [ "$1" != "openapi" ]; then
 fi
 
 deployment="$1"
-workspacePath="[enter base path]/aws-connectedcar-dotnet-lambda"
-commonPath="[enter base path]/aws-connectedcar-extras"
+workspacePath="[enter base path]/aws-connectedcar-dotnet-serverless"
+commonPath="[enter base path]/aws-connectedcar-common"
 bucket="[enter bucket name]"
 zip="connectedcar.zip"
 service="ConnectedCar"
