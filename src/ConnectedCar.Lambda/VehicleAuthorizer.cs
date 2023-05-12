@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 namespace ConnectedCar.Lambda
 {
-    public class VehicleAuthorizerFunction : BaseRequestFunctions
+    public class VehicleAuthorizer : BaseRequestFunctions
     {
-        public VehicleAuthorizerFunction() {}
+        public VehicleAuthorizer() {}
 
         public async Task<AuthPolicy> Authorize(APIGatewayProxyRequest request, ILambdaContext context)
         {
