@@ -3,19 +3,17 @@ using Amazon.Lambda.Core;
 using ConnectedCar.Core.Shared.Data.Enums;
 using ConnectedCar.Core.Shared.Data.Entities;
 using ConnectedCar.Core.Shared.Data.Updates;
-using ConnectedCar.Core.Shared.Orchestrators;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 
 namespace ConnectedCar.Lambda
 {
     public class AdminFunctions : BaseRequestFunctions
     {
-        public AdminFunctions() {
-            GetDealerService().GetDealers(StateCodeEnum.OR);
-        }
+        public AdminFunctions() {}
 
         public AdminFunctions(ServiceProvider serviceProvider) : base(serviceProvider) {}
 
@@ -41,6 +39,22 @@ namespace ConnectedCar.Lambda
             {
                 StateCodeEnum stateCode = GetStateCode(request);
                 List<Dealer> dealers = await GetDealerService().GetDealers(stateCode);
+
+                dealers.Add(new Dealer
+                {
+                    DealerId = Guid.NewGuid().ToString(),
+                    Name = "Fake Dealer",
+                    Address = new Core.Shared.Data.Attributes.Address
+                    {
+                        StreetAddress = "Fake Street Address",
+                        City = "Fake City",
+                        State = "WA",
+                        ZipCode = "00000"
+                    },
+                    StateCode = StateCodeEnum.WA,
+                    CreateDateTime = DateTime.Now,
+                    UpdateDateTime = DateTime.Now
+                });                
 
                 return new APIGatewayProxyResponse
                 {
@@ -75,6 +89,36 @@ namespace ConnectedCar.Lambda
                         StatusCode = (int)HttpStatusCode.NotFound
                     };
                 }
+
+            }, context);
+        }
+
+        public async Task<APIGatewayProxyResponse> FakeDealer(APIGatewayProxyRequest request, ILambdaContext context)
+        {
+            return await Process(async () =>
+            {
+                var dealer = new Dealer
+                {
+                    DealerId = Guid.NewGuid().ToString(),
+                    Name = "Fake Dealer",
+                    Address = new Core.Shared.Data.Attributes.Address
+                    {
+                        StreetAddress = "Fake Street Address",
+                        City = "Fake City",
+                        State = "WA",
+                        ZipCode = "00000"
+                    },
+                    StateCode = StateCodeEnum.WA,
+                    CreateDateTime = DateTime.Now,
+                    UpdateDateTime = DateTime.Now
+                };  
+
+                return new APIGatewayProxyResponse
+                {
+                    StatusCode = (int)HttpStatusCode.OK,
+                    Body = SerializeItem(dealer),
+                    Headers = ContentResponseHeaders
+                };
 
             }, context);
         }
