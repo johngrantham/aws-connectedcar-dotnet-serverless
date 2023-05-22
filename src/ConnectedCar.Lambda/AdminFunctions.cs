@@ -40,22 +40,6 @@ namespace ConnectedCar.Lambda
                 StateCodeEnum stateCode = GetStateCode(request);
                 List<Dealer> dealers = await GetDealerService().GetDealers(stateCode);
 
-                dealers.Add(new Dealer
-                {
-                    DealerId = Guid.NewGuid().ToString(),
-                    Name = "Fake Dealer",
-                    Address = new Core.Shared.Data.Attributes.Address
-                    {
-                        StreetAddress = "Fake Street Address",
-                        City = "Fake City",
-                        State = "WA",
-                        ZipCode = "00000"
-                    },
-                    StateCode = StateCodeEnum.WA,
-                    CreateDateTime = DateTime.Now,
-                    UpdateDateTime = DateTime.Now
-                });                
-
                 return new APIGatewayProxyResponse
                 {
                     StatusCode = (int)HttpStatusCode.OK,
@@ -89,36 +73,6 @@ namespace ConnectedCar.Lambda
                         StatusCode = (int)HttpStatusCode.NotFound
                     };
                 }
-
-            }, context);
-        }
-
-        public async Task<APIGatewayProxyResponse> FakeDealer(APIGatewayProxyRequest request, ILambdaContext context)
-        {
-            return await Process(async () =>
-            {
-                var dealer = new Dealer
-                {
-                    DealerId = Guid.NewGuid().ToString(),
-                    Name = "Fake Dealer",
-                    Address = new Core.Shared.Data.Attributes.Address
-                    {
-                        StreetAddress = "Fake Street Address",
-                        City = "Fake City",
-                        State = "WA",
-                        ZipCode = "00000"
-                    },
-                    StateCode = StateCodeEnum.WA,
-                    CreateDateTime = DateTime.Now,
-                    UpdateDateTime = DateTime.Now
-                };  
-
-                return new APIGatewayProxyResponse
-                {
-                    StatusCode = (int)HttpStatusCode.OK,
-                    Body = SerializeItem(dealer),
-                    Headers = ContentResponseHeaders
-                };
 
             }, context);
         }
