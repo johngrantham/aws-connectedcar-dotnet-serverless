@@ -4,13 +4,6 @@ Parameters:
   BucketName:
     Type: String
     Description: 'Specifies the name of the S3 bucket from which code is deployed.'
-  BranchName:
-    Description: 'CodeCommit branch name'
-    Type: String
-    Default: master
-  ZipFile:
-    Description: 'Solution zip file.'
-    Type: String
   ServiceName:
     Type: String
     Description: 'Specifies the name of the service e.g. ConnectedCar.'
@@ -36,6 +29,23 @@ Parameters:
   DeployFile:
     Type: String
     Description: 'Specifies the name of the master template file for the deploy stage.'
+  RepoOwner:
+    Type: String
+    Description: 'Specifies the account owner for the GitHub repositories.'
+  SourceRepoName:
+    Type: String
+    Description: 'Specifies the name for the GitHub source repository.'
+  SourceRepoBranch:
+    Type: String
+    Default: main
+    Description: 'Specifies the branch name for the GitHub source repository.'
+  CommonRepoName:
+    Type: String
+    Description: 'Specifies the name for the GitHub common repository.'
+  CommonRepoBranch:
+    Type: String
+    Default: main
+    Description: 'Specifies the branch name for the GitHub common repository.'
 Resources:
   BuildPolicy:
     Type: 'AWS::IAM::ManagedPolicy'
@@ -53,6 +63,7 @@ Resources:
               - 'cloudformation:*'
               - 'apigateway:*'
               - 'cognito-idp:*'
+              - 'secretsmanager:*'
             Resource: '*'
   BuildServiceRole:
     Type: 'AWS::IAM::Role'
@@ -137,16 +148,6 @@ Resources:
       ManagedPolicyArns:
         - !Ref CloudFormationPolicy
       RoleName: !Sub '${ServiceName}_CloudFormation_ServiceRole_${EnvironmentName}'
-  Repository:
-    Type: AWS::CodeCommit::Repository
-    Properties: 
-      RepositoryDescription: 'Code repository for the solution'
-      RepositoryName: !Sub '${ServiceName}_Repo_${EnvironmentName}'
-      Code:
-        BranchName: !Ref BranchName
-        S3: 
-          Bucket: !Ref BucketName
-          Key: !Sub '${ServiceName}/Repo/${ZipFile}'
   BuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
@@ -217,16 +218,31 @@ Resources:
             - Name: SourceAction
               ActionTypeId:
                 Category: Source
-                Owner: AWS
+                Owner: ThirdParty
                 Version: 1
-                Provider: CodeCommit
+                Provider: GitHub
               OutputArtifacts:
                 - Name: SourceArtifact
               Configuration:
-                BranchName: !Ref BranchName
-                RepositoryName: !GetAtt 
-                  - Repository
-                  - Name
+                OAuthToken: '{{resolve:secretsmanager:personal-access-token:SecretString:token}}'
+                Owner: !Ref RepoOwner
+                Repo: !Ref SourceRepoName
+                Branch: !Ref SourceRepoBranch
+                PollForSourceChanges: false
+              RunOrder: 1
+            - Name: CommonAction
+              ActionTypeId:
+                Category: Source
+                Owner: ThirdParty
+                Version: 1
+                Provider: GitHub
+              OutputArtifacts:
+                - Name: CommonArtifact
+              Configuration:
+                OAuthToken: '{{resolve:secretsmanager:personal-access-token:SecretString:token}}'
+                Owner: !Ref RepoOwner
+                Repo: !Ref CommonRepoName
+                Branch: !Ref CommonRepoBranch
                 PollForSourceChanges: false
               RunOrder: 1
         - Name: Build
@@ -278,7 +294,7 @@ Resources:
                 Version: 1
                 Provider: CodeBuild
               InputArtifacts:
-                - Name: SourceArtifact
+                - Name: CommonArtifact
               OutputArtifacts:
                 - Name: TestArtifact
               Configuration:
