@@ -2,6 +2,8 @@ version: 0.2
 env:
   exported-variables:
     - VERSION_NUMBER
+  secrets-manager:
+    TOKEN: "personal-access-token:token"    
 phases:
   install:
     runtime-versions:
@@ -12,7 +14,7 @@ phases:
   pre_build:
     commands:
       - VERSION_NUMBER=$(date +"%Y%m%d-%H%M%S")
-      - dotnet nuget add source --name github "https://nuget.pkg.github.com/johngrantham/index.json"
+      - dotnet nuget add source --username USERNAME --password ${TOKEN} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/johngrantham/index.json"
   build:
     commands:
       # build the lambda package file
