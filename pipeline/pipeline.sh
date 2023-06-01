@@ -19,9 +19,9 @@ buildFile="buildspec/${deployment}.buildspec.yml"
 deployFile="deployment/${deployment}/templates/master.yaml"
 testFile="buildspec/test.buildspec.yml"
 
-repoOwner=johngrantham
-sourceRepoName=aws-connectedcar-dotnet-serverless
-commonRepoName=aws-connectedcar-common
+repoOwner="johngrantham"
+sourceRepoName="aws-connectedcar-dotnet-serverless"
+commonRepoName="aws-connectedcar-common"
 
 echo " "
 echo "*************************************************************"
