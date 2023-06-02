@@ -91,7 +91,6 @@ Resources:
           - Sid: AllowPassRole
             Effect: Allow
             Action:
-              - 'codecommit:*'
               - 'codebuild:*'
               - 'cloudformation:*'
               - 's3:*'
