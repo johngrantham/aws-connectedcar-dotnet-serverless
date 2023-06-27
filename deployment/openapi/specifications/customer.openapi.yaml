@@ -9,13 +9,20 @@ x-amazon-apigateway-request-validators:
 x-amazon-apigateway-request-validator: all
 paths:
   /customer/profile:
-    patch: # update customer
+    patch:
+      operationId: update-customer
+      summary: Update an individual customer
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/CustomerPatch' 
+      responses:
+        '200':
+          description: Item updated
+        '400':
+          description: Invalid input
       security:
       - CognitoAuthorizer:
         - aws.cognito.signin.user.admin
@@ -27,14 +34,18 @@ paths:
         type: "aws_proxy"
         credentials: 
           Fn::Sub: ${LambdaInvocationRoleArn}
-    get: # get customer
+    get:
+      operationId: get-customer
+      summary: Get an individual customer by auth username
       responses:
         '200':
-          description: An individual customer by auth username
+          description: An individual customer
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Customer'
+        '400':
+          description: Invalid input              
       security:
       - CognitoAuthorizer:
         - aws.cognito.signin.user.admin
@@ -47,13 +58,20 @@ paths:
         credentials: 
           Fn::Sub: ${LambdaInvocationRoleArn}
   /customer/appointments:
-    post: # create appointments
+    post:
+      operationId: create-appointment
+      summary: Create a new appointment
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Appointment' 
+      responses:
+        '201':
+          description: Item created
+        '400':
+          description: Invalid input              
       security:
       - CognitoAuthorizer:
         - aws.cognito.signin.user.admin
@@ -66,7 +84,9 @@ paths:
         credentials: 
           Fn::Sub: ${LambdaInvocationRoleArn}
   /customer/appointments/{appointmentId}:
-    get: # get appointment
+    get:
+      operationId: get-appointment
+      summary: Returns an individual appointment by appointmentId
       parameters:
       - name: "appointmentId"
         in: "path"
@@ -80,6 +100,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Appointment'
+        '400':
+          description: Invalid input              
       security:
       - CognitoAuthorizer:
         - aws.cognito.signin.user.admin
@@ -91,13 +113,20 @@ paths:
         type: "aws_proxy"
         credentials: 
           Fn::Sub: ${LambdaInvocationRoleArn}
-    delete: # delete appointment
+    delete:
+      operationId: delete-appointment
+      summary: Deletes an individual appointment by appointmentId
       parameters:
       - name: "appointmentId"
         in: "path"
         required: true
         schema:
           $ref: '#/components/schemas/Guid' 
+      responses:
+        '200':
+          description: Item deleted
+        '400':
+          description: Invalid input              
       security:
       - CognitoAuthorizer:
         - aws.cognito.signin.user.admin
@@ -110,14 +139,18 @@ paths:
         credentials: 
           Fn::Sub: ${LambdaInvocationRoleArn}
   /customer/registrations:
-    get: # get registrations
+    get: 
+      operationId: get-registrations
+      summary: Returns a list of vehicle registrations by auth username
       responses:
         '200':
-          description: A list of registrations for a customer
+          description: A list of registrations
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Registrations'
+        '400':
+          description: Invalid input              
       security:
       - CognitoAuthorizer:
         - aws.cognito.signin.user.admin
@@ -130,7 +163,9 @@ paths:
         credentials: 
           Fn::Sub: ${LambdaInvocationRoleArn}
   /customer/registrations/{vin}/appointments:
-    get: # get vehicle appointments
+    get:
+      operationId: get-vehicle-appointments
+      summary: Returns a list of vehicle appointments by vin and auth username
       parameters:
       - name: "vin"
         in: "path"
@@ -139,11 +174,13 @@ paths:
           $ref: '#/components/schemas/AlphaNumeric' 
       responses:
         '200':
-          description: A list of appointments by vehicle vin
+          description: A list of appointments
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Appointments'
+        '400':
+          description: Invalid input              
       security:
       - CognitoAuthorizer:
         - aws.cognito.signin.user.admin
@@ -156,7 +193,9 @@ paths:
         credentials: 
           Fn::Sub: ${LambdaInvocationRoleArn}
   /customer/vehicles/{vin}:
-    get: # get vehicle
+    get:
+      operationId: get-vehicle
+      summary: Returns an individual vehicle by vin
       parameters:
       - name: "vin"
         in: "path"
@@ -165,11 +204,13 @@ paths:
           $ref: '#/components/schemas/AlphaNumeric' 
       responses:
         '200':
-          description: An individual vehicle by vin
+          description: An individual vehicle
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Vehicle'
+        '400':
+          description: Invalid input              
       security:
       - CognitoAuthorizer:
         - aws.cognito.signin.user.admin
@@ -182,7 +223,9 @@ paths:
         credentials: 
           Fn::Sub: ${LambdaInvocationRoleArn}
   /customer/vehicles/{vin}/events:
-    get: # get events
+    get:
+      operationId: get-events
+      summary: Returns a list of vehicle events by vin
       parameters:
       - name: "vin"
         in: "path"
@@ -191,11 +234,13 @@ paths:
           $ref: '#/components/schemas/AlphaNumeric' 
       responses:
         '200':
-          description: A list of events for a vehicle
+          description: A list of vehicle events
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Events'
+        '400':
+          description: Invalid input              
       security:
       - CognitoAuthorizer:
         - aws.cognito.signin.user.admin
@@ -208,7 +253,9 @@ paths:
         credentials: 
           Fn::Sub: ${LambdaInvocationRoleArn}
   /customer/dealers:
-    get: # get dealers
+    get: 
+      operationId: get-dealers
+      summary: Returns a list of dealers by stateCode
       parameters:
       - name: "stateCode"
         in: "query"
@@ -217,11 +264,13 @@ paths:
           $ref: '#/components/schemas/StateCode' 
       responses:
         '200':
-          description: A list of dealers by stateCode
+          description: A list of dealers
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Dealers'
+        '400':
+          description: Invalid input              
       security:
       - CognitoAuthorizer:
         - aws.cognito.signin.user.admin
@@ -234,7 +283,9 @@ paths:
         credentials: 
           Fn::Sub: ${LambdaInvocationRoleArn}
   /customer/dealers/{dealerId}/timeslots:
-    get: # get timeslots
+    get: 
+      operationId: get-timeslots
+      summary: Returns a list of timeslots by dealerId
       parameters:
       - name: "dealerId"
         in: "path"
@@ -243,11 +294,13 @@ paths:
           $ref: '#/components/schemas/Guid' 
       responses:
         '200':
-          description: A list of timeslots for a dealer
+          description: A list of timeslots
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Timeslots'
+        '400':
+          description: Invalid input              
       security:
       - CognitoAuthorizer:
         - aws.cognito.signin.user.admin

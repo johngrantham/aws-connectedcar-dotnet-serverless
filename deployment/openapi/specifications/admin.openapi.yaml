@@ -9,13 +9,20 @@ x-amazon-apigateway-request-validators:
 x-amazon-apigateway-request-validator: all
 paths:
   /admin/dealers:
-    post: # create dealer
+    post:
+      operationId: create-dealer
+      summary: Creates a new dealer
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Dealer' 
+      responses:
+        '201':
+          description: Item created
+        '400':
+          description: Invalid input              
       security:
       - api_key: []
       x-amazon-apigateway-integration:
@@ -25,7 +32,9 @@ paths:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateDealer.Arn}:${StageName}/invocations
         credentials: 
           Fn::Sub: ${LambdaInvocationRoleArn}
-    get: # get dealers
+    get:
+      operationId: get-dealers
+      summary: Returns a list of dealers by stateCode
       parameters:
       - name: "stateCode"
         in: "query"
@@ -34,11 +43,13 @@ paths:
           $ref: '#/components/schemas/StateCode' 
       responses:
         '200':
-          description: A list of dealers by stateCode
+          description: A list of dealers
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Dealers'
+        '400':
+          description: Invalid input              
       security:
       - api_key: []
       x-amazon-apigateway-integration:
@@ -50,6 +61,8 @@ paths:
           Fn::Sub: ${LambdaInvocationRoleArn}
   /admin/dealers/{dealerId}:
     get: # get dealer
+      operationId: get-dealer
+      summary: Returns an individual dealer by dealerId
       parameters:
       - name: "dealerId"
         in: "path"
@@ -58,11 +71,13 @@ paths:
           $ref: '#/components/schemas/Guid' 
       responses:
         '200':
-          description: An individual dealer by dealerId
+          description: An individual dealer
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Dealer'
+        '400':
+          description: Invalid input              
       security:
       - api_key: []
       x-amazon-apigateway-integration:
@@ -73,7 +88,9 @@ paths:
         credentials: 
           Fn::Sub: ${LambdaInvocationRoleArn}
   /admin/dealers/{dealerId}/timeslots:
-    post: # create timeslot
+    post:
+      operationId: create-timeslot
+      summary: Creates a new timeslot
       parameters:
       - name: "dealerId"
         in: "path"
@@ -86,6 +103,11 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Timeslot' 
+      responses:
+        '201':
+          description: Item created
+        '400':
+          description: Invalid input              
       security:
       - api_key: []
       x-amazon-apigateway-integration:
@@ -95,7 +117,9 @@ paths:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateTimeslot.Arn}:${StageName}/invocations
         credentials: 
           Fn::Sub: ${LambdaInvocationRoleArn}
-    get: # get timeslots
+    get:
+      operationId: get-timeslots
+      summary: Returns a list of timeslots by dealerId
       parameters:
       - name: "dealerId"
         in: "path"
@@ -114,11 +138,13 @@ paths:
           $ref: '#/components/schemas/Date' 
       responses:
         '200':
-          description: A list of timeslots for a dealer
+          description: A list of timeslots
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Timeslots'
+        '400':
+          description: Invalid input              
       security:
       - api_key: []
       x-amazon-apigateway-integration:
@@ -129,7 +155,9 @@ paths:
         credentials: 
           Fn::Sub: ${LambdaInvocationRoleArn}
   /admin/dealers/{dealerId}/timeslots/{serviceDateHour}:
-    get: # get timeslot
+    get:
+      operationId: get-timeslot
+      summary: Returns an individual timeslot by dealerId and serviceDateHour
       parameters:
       - name: "dealerId"
         in: "path"
@@ -148,6 +176,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Timeslot'
+        '400':
+          description: Invalid input              
       security:
       - api_key: []
       x-amazon-apigateway-integration:
@@ -158,13 +188,20 @@ paths:
         credentials: 
           Fn::Sub: ${LambdaInvocationRoleArn}
   /admin/customers:
-    post: # create customer
+    post:
+      operationId: create-customer
+      summary: Creates a new customer
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/CustomerProvision' 
+      responses:
+        '201':
+          description: Item created
+        '400':
+          description: Invalid input              
       security:
       - api_key: []
       x-amazon-apigateway-integration:
@@ -174,7 +211,9 @@ paths:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateCustomer.Arn}:${StageName}/invocations
         credentials: 
           Fn::Sub: ${LambdaInvocationRoleArn}
-    get: # get customers
+    get:
+      operationId: get-customers
+      summary: Returns a list of customers by lastname
       parameters:
       - name: "lastname"
         in: "query"
@@ -183,11 +222,13 @@ paths:
           $ref: '#/components/schemas/Text' 
       responses:
         '200':
-          description: A list of customers by lastname
+          description: A list of customers
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Customers'
+        '400':
+          description: Invalid input              
       security:
       - api_key: []
       x-amazon-apigateway-integration:
@@ -198,7 +239,9 @@ paths:
         credentials: 
           Fn::Sub: ${LambdaInvocationRoleArn}
   /admin/customers/{username}:
-    get: # get customer
+    get:
+      operationId: get-customer
+      summary: Returns an individual customer by username
       parameters:
       - name: "username"
         in: "path"
@@ -207,11 +250,13 @@ paths:
           $ref: '#/components/schemas/AlphaNumeric' 
       responses:
         '200':
-          description: An individual customer by username
+          description: An individual customer
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Customer'
+        '400':
+          description: Invalid input              
       security:
       - api_key: []
       x-amazon-apigateway-integration:
@@ -222,13 +267,20 @@ paths:
         credentials: 
           Fn::Sub: ${LambdaInvocationRoleArn}
   /admin/customers/{username}/registrations:
-    post: # create registration
+    post:
+      operationId: create-registration
+      summary: Creates a new vehicle registration
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Registration' 
+      responses:
+        '201':
+          description: Item created
+        '400':
+          description: Invalid input              
       parameters:
       - name: "username"
         in: "path"
@@ -244,13 +296,20 @@ paths:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateRegistration.Arn}:${StageName}/invocations
         credentials: 
           Fn::Sub: ${LambdaInvocationRoleArn}
-    patch: # update registration
+    patch:
+      operationId: update-registration
+      summary: Updates a vehicle registration
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/RegistrationPatch' 
+      responses:
+        '200':
+          description: Item updated
+        '400':
+          description: Invalid input              
       parameters:
       - name: "username"
         in: "path"
@@ -266,7 +325,9 @@ paths:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UpdateRegistration.Arn}:${StageName}/invocations
         credentials: 
           Fn::Sub: ${LambdaInvocationRoleArn}
-    get: # get customer registrations
+    get:
+      operationId: get-customer-registrations
+      summary: Returns a list of vehicle registrations by username
       parameters:
       - name: "username"
         in: "path"
@@ -275,11 +336,13 @@ paths:
           $ref: '#/components/schemas/AlphaNumeric' 
       responses:
         '200':
-          description: A list of vehicle registrations for a customer
+          description: A list of vehicle registrations
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Registrations'
+        '400':
+          description: Invalid input              
       security:
       - api_key: []
       x-amazon-apigateway-integration:
@@ -290,7 +353,9 @@ paths:
         credentials: 
           Fn::Sub: ${LambdaInvocationRoleArn}
   /admin/customers/{username}/registrations/{vin}:
-    get: # get registration
+    get:
+      operationId: get-registration
+      summary: Returns an individual vehicle registration by username and vin
       parameters:
       - name: "username"
         in: "path"
@@ -304,11 +369,13 @@ paths:
           $ref: '#/components/schemas/AlphaNumeric' 
       responses:
         '200':
-          description: An individual registration
+          description: An individual vehicle registration
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Registration'
+        '400':
+          description: Invalid input              
       security:
       - api_key: []
       x-amazon-apigateway-integration:
@@ -319,13 +386,20 @@ paths:
         credentials: 
           Fn::Sub: ${LambdaInvocationRoleArn}
   /admin/vehicles:
-    post: # create vehicle
+    post:
+      operationId: create-vehicle
+      summary: Creates a new vehicle
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Vehicle' 
+      responses:
+        '201':
+          description: Item created
+        '400':
+          description: Invalid input              
       security:
       - api_key: []
       x-amazon-apigateway-integration:
@@ -336,7 +410,9 @@ paths:
         credentials: 
           Fn::Sub: ${LambdaInvocationRoleArn}
   /admin/vehicles/{vin}:
-    get: # get vehicle
+    get:
+      operationId: get-vehicle
+      summary: Returns an individual vehicle by vin
       parameters:
       - name: "vin"
         in: "path"
@@ -345,11 +421,13 @@ paths:
           $ref: '#/components/schemas/AlphaNumeric' 
       responses:
         '200':
-          description: An individual vehicle by vin
+          description: An individual vehicle
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Vehicle'
+        '400':
+          description: Invalid input              
       security:
       - api_key: []
       x-amazon-apigateway-integration:
@@ -360,7 +438,9 @@ paths:
         credentials: 
           Fn::Sub: ${LambdaInvocationRoleArn}
   /admin/vehicles/{vin}/registrations:
-    get: # get vehicle registrations
+    get:
+      operationId: get-vehicle-registrations
+      summary: Returns a list of vehicle registrations by vin
       parameters:
       - name: "vin"
         in: "path"
@@ -369,11 +449,13 @@ paths:
           $ref: '#/components/schemas/AlphaNumeric' 
       responses:
         '200':
-          description: A list of registrations for a vehicle
+          description: A list of registrations
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Registrations'
+        '400':
+          description: Invalid input              
       security:
       - api_key: []
       x-amazon-apigateway-integration:

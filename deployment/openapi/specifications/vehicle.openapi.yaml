@@ -9,13 +9,20 @@ x-amazon-apigateway-request-validators:
 x-amazon-apigateway-request-validator: all
 paths:
   /vehicle/events:
-    post: # create event
+    post:
+      operationId: create-event
+      summary: Creates a new vehicle event
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Event' 
+      responses:
+        '201':
+          description: Item created
+        '400':
+          description: Invalid input              
       security:
       - VehicleAuthorizer: []
       x-amazon-apigateway-integration:
@@ -25,7 +32,9 @@ paths:
         type: "aws_proxy"
         credentials: 
           Fn::Sub: ${LambdaInvocationRoleArn}
-    get: # get events
+    get:
+      operationId: get-events
+      summary: Returns a list of vehicle events by auth vin
       responses:
         '200':
           description: A list of events
@@ -33,6 +42,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Events'
+        '400':
+          description: Invalid input              
       security:
       - VehicleAuthorizer: []
       x-amazon-apigateway-integration:
@@ -43,7 +54,9 @@ paths:
         credentials: 
           Fn::Sub: ${LambdaInvocationRoleArn}
   /vehicle/events/{timestamp}:
-    get: # get event
+    get:
+      operationId: get-event
+      summary: Returns an individual vehicle event by timestamp and auth vin
       parameters:
       - name: "timestamp"
         in: "path"
@@ -57,6 +70,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Event'
+        '400':
+          description: Invalid input              
       security:
       - VehicleAuthorizer: []
       x-amazon-apigateway-integration:
