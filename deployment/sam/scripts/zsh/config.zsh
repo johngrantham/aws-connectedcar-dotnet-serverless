@@ -2,8 +2,8 @@
 
 set -e
 
-workspacePath="[enter base path]/aws-connectedcar-dotnet-serverless"
-bucket="[enter bucket name]"
+workspacePath="/Users/Shared/Repos/aws-connectedcar-dotnet-serverless"
+bucket="connectedcar-deployment-205412"
 service="ConnectedCar"
 environment="Dev"
 version="20220801"
@@ -14,7 +14,7 @@ domain="connectedcar${number}"
 
 echo " "
 echo "*************************************************************"
-echo "*            Validating the config.sh variables             *"
+echo "*            Validating the config.zsh variables            *"
 echo "*************************************************************"
 echo " "
 

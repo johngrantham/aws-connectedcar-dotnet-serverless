@@ -14,7 +14,7 @@ domain="connectedcar${number}"
 
 echo " "
 echo "*************************************************************"
-echo "*            Validating the config.sh variables             *"
+echo "*            Validating the config.zsh variables            *"
 echo "*************************************************************"
 echo " "
 
