@@ -2,8 +2,8 @@
 
 set -e
 
-workspacePath="/Users/Shared/Repos/aws-connectedcar-dotnet-serverless"
-bucket="connectedcar-deployment-205412"
+workspacePath="[enter base path]/aws-connectedcar-dotnet-serverless"
+bucket="[enter bucket name]"
 service="ConnectedCar"
 environment="Dev"
 version="20220801"
