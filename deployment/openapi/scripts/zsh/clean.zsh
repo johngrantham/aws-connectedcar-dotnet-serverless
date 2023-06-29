@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-source config.sh
+source config.zsh
 
 echo " "
 echo "*************************************************************"
@@ -11,4 +11,3 @@ echo " "
 aws s3 rm --recursive s3://${bucket}/${service}/${environment}
 
 echo " "
-

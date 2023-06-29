@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-source config.sh
+source config.zsh
 
 echo " "
 echo "*************************************************************"
@@ -24,3 +24,4 @@ aws s3 cp \
     s3://${bucket}/${service}/${environment}/Lambda-${version}.zip
 
 echo " "
+
