@@ -70,7 +70,7 @@ Write-S3Object `
 
 $templateBody = Get-Content -Path "${workspacePath}/deployment/openapi/templates/master.yaml" -raw
 
-if (-Not (Test-CFNStack -Region ${region} -StackName "${service}${environment}"))
+if (-Not (Test-CFNStack -StackName "${service}${environment}"))
 {
   Write-Host " "
   Write-Host "*************************************************************"
