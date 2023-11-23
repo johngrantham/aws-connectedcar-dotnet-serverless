@@ -15,6 +15,9 @@ service="ConnectedCar"
 environment="Dev"
 stage="api"
 
+number=$(date +"%H%M%S")
+domain="connectedcar${number}"
+
 buildFile="buildspec/${deployment}.buildspec.yml"
 deployFile="deployment/${deployment}/templates/master.yaml"
 testFile="buildspec/test.buildspec.yml"
@@ -36,6 +39,7 @@ aws cloudformation create-stack \
                  ParameterKey=ServiceName,ParameterValue=${service} \
                  ParameterKey=EnvironmentName,ParameterValue=${environment} \
                  ParameterKey=StageName,ParameterValue=${stage}  \
+                 ParameterKey=UserPoolDomainName,ParameterValue=${domain} \
                  ParameterKey=BuildFile,ParameterValue=${buildFile} \
                  ParameterKey=TestFile,ParameterValue=${testFile} \
                  ParameterKey=DeployFile,ParameterValue=${deployFile} \

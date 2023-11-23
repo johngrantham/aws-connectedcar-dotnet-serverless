@@ -86,7 +86,10 @@ if (-Not (Test-CFNStack -StackName "${service}${environment}"))
                     @{ ParameterKey="EnvironmentName"; ParameterValue="${environment}" }, `
                     @{ ParameterKey="VersionNumber"; ParameterValue="${version}" }, `
                     @{ ParameterKey="StageName"; ParameterValue="${stage}" }, `
-                    @{ ParameterKey="UserPoolDomainName"; ParameterValue="${domain}" }) `
+                    @{ ParameterKey="UserPoolDomainName"; ParameterValue="${domain}" } `
+                    @{ ParameterKey="RepoOwner",ParameterValue="${repoOwner}" } `
+                    @{ ParameterKey="SourceRepoName",ParameterValue="${sourceRepoName}" } `
+                    @{ ParameterKey="CommonRepoName",ParameterValue="${commonRepoName}" }) `
       -Capability CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND
 
   Wait-CFNStack `

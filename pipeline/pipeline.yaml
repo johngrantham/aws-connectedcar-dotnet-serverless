@@ -20,6 +20,10 @@ Parameters:
     Type: String
     Default: api
     Description: 'Specifies the stage name e.g. api.'
+  UserPoolDomainName:
+    Type: String
+    Default: connectedcar
+    Description: 'Domain prefix for the Cognito user pool.'
   BuildFile:
     Type: String
     Description: 'Specifies the name of the buildspec file for the build stage.'
@@ -276,7 +280,7 @@ Resources:
               Configuration:
                 ActionMode: CREATE_UPDATE
                 Capabilities: CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND
-                ParameterOverrides: !Sub '{"BucketName": "${BucketName}","ServiceName": "${ServiceName}","EnvironmentName": "${EnvironmentName}","VersionNumber": "#{BuildVariables.VERSION_NUMBER}","StageName": "${StageName}"}'
+                ParameterOverrides: !Sub '{"BucketName": "${BucketName}","ServiceName": "${ServiceName}","EnvironmentName": "${EnvironmentName}","VersionNumber": "#{BuildVariables.VERSION_NUMBER}","StageName": "${StageName}","UserPoolDomainName": "${UserPoolDomainName}"}'
                 RoleArn: !GetAtt 
                   - CloudFormationServiceRole
                   - Arn

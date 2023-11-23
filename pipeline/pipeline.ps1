@@ -17,9 +17,16 @@ $service="ConnectedCar"
 $environment="Dev"
 $stage="api"
 
+$number=(Get-Date -UFormat "%H%M%S")
+$domain="connectedcar${number}"
+
 $buildFile="buildspec/${deployment}.buildspec.yml"
 $deployFile="deployment/${deployment}/templates/master.yaml"
 $testFile="buildspec/test.buildspec.yml"
+
+$repoOwner="johngrantham"
+$sourceRepoName="aws-connectedcar-dotnet-serverless"
+$commonRepoName="aws-connectedcar-common"
 
 Import-Module AWSPowerShell.NetCore
 
@@ -74,6 +81,7 @@ New-CFNStack `
                   @{ ParameterKey="ServiceName"; ParameterValue="${service}" }, `
                   @{ ParameterKey="EnvironmentName"; ParameterValue="${environment}" }, `
                   @{ ParameterKey="StageName"; ParameterValue="${stage}" }, `
+                  @{ ParameterKey="UserPoolDomainName"; ParameterValue="${domain}" } `
                   @{ ParameterKey="BuildFile"; ParameterValue="${buildFile}" }, `
                   @{ ParameterKey="TestFile"; ParameterValue="${testFile}" }, `
                   @{ ParameterKey="DeployFile"; ParameterValue="${deployFile}" }) `
